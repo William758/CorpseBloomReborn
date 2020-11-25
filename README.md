@@ -7,6 +7,7 @@ Reserve stores extra healing and heals you over time.
 Reserve has a minimum and maximum usage rate, so keep healing to keep it filled up.
 
 Current Reserve is shown as a purple bar on the health bar on the HUD.
+
 https://streamable.com/qh79ba
 
 Config allows changing behavior and values.
