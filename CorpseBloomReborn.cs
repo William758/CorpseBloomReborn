@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using MiniRpcLib;
 using MiniRpcLib.Action;
@@ -24,7 +24,7 @@ namespace TPDespair.CorpseBloomReborn
 
     public class CorpseBloomRebornPlugin : BaseUnityPlugin
     {
-        public const string ModVer = "1.0.0";
+        public const string ModVer = "1.1.0";
         public const string ModName = "CorpseBloomReborn";
         public const string ModGuid = "com.TPDespair.CorpseBloomReborn";
 
@@ -100,64 +100,52 @@ namespace TPDespair.CorpseBloomReborn
         private void ConfigSetup()
         {
             HealBeforeReserve = Config.Bind<bool>(
-                "General",
-                "HealBeforeReserve", true,
+                "General", "HealBeforeReserve", false,
                 "If incoming healing should apply to health before going into reserve."
             );
             HealReserveFull = Config.Bind<bool>(
-                "General",
-                "HealReserveFull", true,
+                "General", "HealReserveFull", true,
                 "If incoming healing should apply to health after reserve is full."
             );
             BaseAbsorbMult = Config.Bind<float>(
-                "General",
-                "BaseAbsorbMult", 0f,
+                "General", "BaseAbsorbMult", 0f,
                 "Base increased reserve absorption. Increases effectiveness of healing going into reserve."
             );
             StackAbsorbMult = Config.Bind<float>(
-                "General",
-                "StackAbsorbMult", 0f,
-                "Stack increased reserve absorption. Increases effectiveness of healing going into reserve."
+                "General", "StackAbsorbMult", 0f,
+                "Stack increased reserve absorption."
             );
             BaseHealMult = Config.Bind<float>(
-                "General",
-                "BaseHealMult", 0f,
+                "General", "BaseHealMult", 0f,
                 "Base increased healing effectiveness. Old CB only effected healing going into reserve. This setting effects actual healing!"
             );
             StackHealMult = Config.Bind<float>(
-                "General",
-                "StackHealMult", 0f,
-                "Stack increased healing effectiveness. Old CB only effected healing going into reserve. This setting effects actual healing!"
+                "General", "StackHealMult", 0f,
+                "Stack increased healing effectiveness."
             );
             BaseHealthReserve = Config.Bind<float>(
-                "General",
-                "BaseHealthReserve", 0.5f,
+                "General", "BaseHealthReserve", 1.0f,
                 "Base reserve gained from health."
             );
             StackHealthReserve = Config.Bind<float>(
-                "General",
-                "StackHealthReserve", 0.25f,
+                "General", "StackHealthReserve", 0.5f,
                 "Stack reserve gained from health."
             );
             BaseMaxUsageRate = Config.Bind<float>(
-                "General",
-                "BaseMaxUsageRate", 0.10f,
+                "General", "BaseMaxUsageRate", 0.10f,
                 "Base maximum healing output from reserve per second."
             );
             StackMaxUsageRate = Config.Bind<float>(
-                "General",
-                "StackMaxUsageRate", 0f,
+                "General", "StackMaxUsageRate", 0.05f,
                 "Stack maximum healing output from reserve per second."
             );
             BaseMinUsageRate = Config.Bind<float>(
-                "General",
-                "BaseMinUsageRate", 0.025f,
+                "General", "BaseMinUsageRate", 0.05f,
                 "Base minimum healing output from reserve per second. Set to 0 to disable reserve decay."
             );
             StackMinUsageRate = Config.Bind<float>(
-                "General",
-                "StackMinUsageRate", 0f,
-                "Stack minimum healing output from reserve per second. Set to 0 to disable reserve decay."
+                "General", "StackMinUsageRate", 0f,
+                "Stack minimum healing output from reserve per second."
             );
 
             if (BaseHealthReserve.Value < 0.1f) BaseHealthReserve.Value = 0.1f;
@@ -167,10 +155,10 @@ namespace TPDespair.CorpseBloomReborn
                 BaseMaxUsageRate.Value = 0.001f;
                 if (StackMaxUsageRate.Value < 0f) StackMaxUsageRate.Value = 0;
             }
-            if (BaseMinUsageRate.Value < 0f)
+            if (BaseMinUsageRate.Value <= 0f)
             {
                 BaseMinUsageRate.Value = 0f;
-                if (StackMinUsageRate.Value < 0f) StackMinUsageRate.Value = 0;
+                StackMinUsageRate.Value = 0;
             }
 
             if (BaseMinUsageRate.Value > BaseMaxUsageRate.Value) BaseMinUsageRate.Value = BaseMaxUsageRate.Value;
@@ -178,14 +166,14 @@ namespace TPDespair.CorpseBloomReborn
 
 
 
-        private int HealthComponentItemCount(HealthComponent healthComponent, ItemIndex itemIndex)
+        private int HealthComponentItemCount(HealthComponent healthComponent, ItemDef itemDef)
         {
             int count = 0;
 
             if (healthComponent.body != null)
             {
                 Inventory inventory = healthComponent.body.inventory;
-                if (inventory) count = inventory.GetItemCount(itemIndex);
+                if (inventory) count = inventory.GetItemCount(itemDef);
             }
 
             return count;
@@ -193,20 +181,20 @@ namespace TPDespair.CorpseBloomReborn
 
         private float GetHealScaleFactor(HealthComponent healthComponent)
         {
-            float factor = 1f + HealthComponentItemCount(healthComponent, ItemIndex.IncreaseHealing);
+            float factor = 1f + HealthComponentItemCount(healthComponent, RoR2Content.Items.IncreaseHealing);
             if (healthComponent.body.teamComponent.teamIndex == TeamIndex.Player && Run.instance.selectedDifficulty >= DifficultyIndex.Eclipse5) factor *= 0.5f;
             return factor;
         }
 
         private float GetMinReserveRate(HealthComponent healthComponent)
         {
-            int count = HealthComponentItemCount(healthComponent, ItemIndex.RepeatHeal);
+            int count = HealthComponentItemCount(healthComponent, RoR2Content.Items.RepeatHeal);
             return Mathf.Max(0f, BaseMinUsageRate.Value + ((count - 1) * StackMinUsageRate.Value));
         }
 
         private float GetMaxReserveRate(HealthComponent healthComponent)
         {
-            int count = HealthComponentItemCount(healthComponent, ItemIndex.RepeatHeal);
+            int count = HealthComponentItemCount(healthComponent, RoR2Content.Items.RepeatHeal);
             float min = Mathf.Max(0f, BaseMinUsageRate.Value + ((count - 1) * StackMinUsageRate.Value));
             return Mathf.Max(0.001f, min, BaseMaxUsageRate.Value + ((count - 1) * StackMaxUsageRate.Value));
         }
@@ -281,7 +269,7 @@ namespace TPDespair.CorpseBloomReborn
 
                 if (healthComponent.body.inventory != null)
                 {
-                    if (healthComponent.body.inventory.GetItemCount(ItemIndex.RepeatHeal) != 0)
+                    if (healthComponent.body.inventory.GetItemCount(RoR2Content.Items.RepeatHeal) != 0)
                     {
                         //Debug.LogWarning(currentReserve + "-" + maxReserve);
                         float mult = 1f / healthComponent.body.cursePenalty;
@@ -317,7 +305,7 @@ namespace TPDespair.CorpseBloomReborn
             {
                 if (healthComponent.body != null)
                 {
-                    int count = HealthComponentItemCount(healthComponent, ItemIndex.RepeatHeal);
+                    int count = HealthComponentItemCount(healthComponent, RoR2Content.Items.RepeatHeal);
 
                     if (count > 0)
                     {
@@ -454,7 +442,7 @@ namespace TPDespair.CorpseBloomReborn
                 {
                     if (reserve == 0f) return 0.2f;
                     if (GetMinReserveRate(healthComponent) == 0f && healthComponent.health == healthComponent.fullHealth) return 0.2f;
-                    if (healthComponent.body.HasBuff(BuffIndex.HealingDisabled)) return 0.2f;
+                    if (healthComponent.body.HasBuff(RoR2Content.Buffs.HealingDisabled)) return 0.2f;
                     return newTime;
                 });
             };
@@ -500,8 +488,6 @@ namespace TPDespair.CorpseBloomReborn
                 c.Emit(OpCodes.Ldarg, 0);
                 c.EmitDelegate<Func<HealthComponent, float>>((healthComponent) =>
                 {
-                    float maxReserve = healthComponent.fullHealth * Mathf.Max(0.1f, BaseHealthReserve.Value);
-
                     if (healthComponent.body != null)
                     {
                         if (!ReserveData.ContainsKey(healthComponent.body.netId))
@@ -509,13 +495,12 @@ namespace TPDespair.CorpseBloomReborn
                             CalculateReserveCapacity(healthComponent);
                         }
 
-                        if (ReserveData.ContainsKey(healthComponent.body.netId))
-                        {
-                            maxReserve = ReserveData[healthComponent.body.netId].maxReserve;
-                        }
+                        return ReserveData[healthComponent.body.netId].maxReserve;
                     }
-
-                    return maxReserve;
+                    else
+                    {
+                        return healthComponent.fullHealth * Mathf.Max(0.1f, BaseHealthReserve.Value);
+                    }
                 });
             };
         }
@@ -543,7 +528,7 @@ namespace TPDespair.CorpseBloomReborn
                 c.Emit(OpCodes.Ldfld, typeof(HealthComponent).GetNestedType("RepeatHealComponent", BindingFlags.Instance | BindingFlags.NonPublic).GetFieldCached("reserve"));
                 c.EmitDelegate<Func<HealthComponent, float, float>>((healthComponent, reserve) =>
                 {
-                    int count = HealthComponentItemCount(healthComponent, ItemIndex.RepeatHeal);
+                    int count = HealthComponentItemCount(healthComponent, RoR2Content.Items.RepeatHeal);
                     float factor = GetHealScaleFactor(healthComponent);
                     float mult = Mathf.Max(0.1f, 1f + BaseHealMult.Value + ((count - 1) * StackHealMult.Value));
                     // highest between - min heal amount - heal missing health
@@ -577,7 +562,7 @@ namespace TPDespair.CorpseBloomReborn
                 c.Emit(OpCodes.Ldarg, 2);
                 c.EmitDelegate<Func<HealthComponent, float, float, float, float>>((healthComponent, reserve, amount, max) =>
                 {
-                    int count = HealthComponentItemCount(healthComponent, ItemIndex.RepeatHeal);
+                    int count = HealthComponentItemCount(healthComponent, RoR2Content.Items.RepeatHeal);
                     float factor = GetHealScaleFactor(healthComponent);
                     float mult = Mathf.Max(0.1f, 1f + BaseHealMult.Value + ((count - 1) * StackHealMult.Value));
                     float absorb = Mathf.Max(0.1f, 1f + BaseAbsorbMult.Value + ((count - 1) * StackAbsorbMult.Value));
@@ -629,9 +614,9 @@ namespace TPDespair.CorpseBloomReborn
             string output = "";
             string temp;
 
-            if (HealBeforeReserve.Value) output += "<style=cIsUtility>Gain extra healing as reserve</style>.\n";
-            else if (HealReserveFull.Value) output += "<style=cIsUtility>Store Healing to heal over time</style>.\n";
-            else output += "<style=cIsUtility>All Healing is applied over time</style>.\n";
+            if (HealBeforeReserve.Value) output += "<style=cIsUtility>Gain extra healing as reserve</style>.";
+            else if (HealReserveFull.Value) output += "<style=cIsUtility>Store healing to heal over time</style>.";
+            else output += "<style=cIsUtility>All healing is applied over time</style>.";
 
             // reserve absorption
             if (BaseAbsorbMult.Value != 0f || StackAbsorbMult.Value != 0f)
@@ -710,7 +695,7 @@ namespace TPDespair.CorpseBloomReborn
                 output += $"{StackHealthReserve.Value * 100f:0.##}% per stack)</style>";
             }
 
-            output += " <style=cIsHealing>maximum health</style> as <style=cIsHealing>reserve</style>.";
+            output += " <style=cIsHealing>maximum health</style> as <color=#A362E5>reserve</color>.";
 
             // recovery rate
             output += "\n<style=cIsHealing>Heal</style> up to <style=cIsHealing>";
@@ -723,12 +708,12 @@ namespace TPDespair.CorpseBloomReborn
                 output += $"{StackMaxUsageRate.Value * 100f:0.##}% per stack)</style>";
             }
 
-            output += " of your <style=cIsHealing>maximum health per second</style> from <style=cIsHealing>reserve</style>.";
+            output += " of your <style=cIsHealing>maximum health per second</style> from <color=#A362E5>reserve</color>.";
 
             // decay rate
             if (BaseMinUsageRate.Value != 0f || StackMinUsageRate.Value != 0f)
             {
-                output += "\n<style=cIsHealing>Reserve</style> <style=cIsDamage>decays</style> at <style=cIsDamage>";
+                output += "\n<color=#A362E5>Reserve</color> <style=cIsDamage>decays</style> at <style=cIsDamage>";
                 output += $"{BaseMinUsageRate.Value * 100f:0.##}%</style>";
 
                 if (StackMinUsageRate.Value != 0f)
@@ -744,8 +729,8 @@ namespace TPDespair.CorpseBloomReborn
 
 
             if (HealBeforeReserve.Value) LanguageAPI.Add("ITEM_REPEATHEAL_PICKUP", "Gain extra healing as reserve.");
-            else if (HealReserveFull.Value) LanguageAPI.Add("ITEM_REPEATHEAL_PICKUP", "Store Healing to heal over time.");
-            else LanguageAPI.Add("ITEM_REPEATHEAL_PICKUP", "All Healing is applied over time.");
+            else if (HealReserveFull.Value) LanguageAPI.Add("ITEM_REPEATHEAL_PICKUP", "Store healing to heal over time.");
+            else LanguageAPI.Add("ITEM_REPEATHEAL_PICKUP", "All healing is applied over time.");
 
             LanguageAPI.Add("ITEM_REPEATHEAL_DESC", output);
         }
@@ -793,30 +778,30 @@ namespace TPDespair.CorpseBloomReborn
                 if (Input.GetKeyDown(KeyCode.F2))
                 {
                     var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.RepeatHeal), transform.position, transform.forward * 20f);
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.ShieldOnly), transform.position, transform.forward * -20f);
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.LunarDagger), transform.position, transform.right * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.RepeatHeal.itemIndex), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.ShieldOnly.itemIndex), transform.position, transform.forward * -20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.LunarDagger.itemIndex), transform.position, transform.right * 20f);
                 }
                 if (Input.GetKeyDown(KeyCode.F3))
                 {
                     var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.Knurl), transform.position, transform.forward * 20f);
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.IncreaseHealing), transform.position, transform.forward * -20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.Knurl.itemIndex), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.IncreaseHealing.itemIndex), transform.position, transform.forward * -20f);
                 }
                 if (Input.GetKeyDown(KeyCode.F4))
                 {
                     var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.AttackSpeedOnCrit), transform.position, transform.forward * 20f);
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.HealOnCrit), transform.position, transform.forward * 20f);
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.CritGlasses), transform.position, transform.forward * 20f);
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.CritGlasses), transform.position, transform.forward * 20f);
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.CritGlasses), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.AttackSpeedOnCrit.itemIndex), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.HealOnCrit.itemIndex), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.CritGlasses.itemIndex), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.CritGlasses.itemIndex), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.CritGlasses.itemIndex), transform.position, transform.forward * 20f);
                 }
                 if (Input.GetKeyDown(KeyCode.F5))
                 {
                     var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.BarrierOnKill), transform.position, transform.forward * 20f);
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(ItemIndex.PersonalShield), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.BarrierOnKill.itemIndex), transform.position, transform.forward * 20f);
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2Content.Items.PersonalShield.itemIndex), transform.position, transform.forward * 20f);
                 }
             }
         }
