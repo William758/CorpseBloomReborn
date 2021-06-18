@@ -24,7 +24,7 @@ namespace TPDespair.CorpseBloomReborn
 
     public class CorpseBloomRebornPlugin : BaseUnityPlugin
     {
-        public const string ModVer = "1.1.0";
+        public const string ModVer = "1.1.1";
         public const string ModName = "CorpseBloomReborn";
         public const string ModGuid = "com.TPDespair.CorpseBloomReborn";
 
@@ -44,6 +44,11 @@ namespace TPDespair.CorpseBloomReborn
 
         private Dictionary<NetworkInstanceId, ReserveAmountMessage> ReserveData = new Dictionary<NetworkInstanceId, ReserveAmountMessage>();
         private Dictionary<NetworkInstanceId, ReserveTargetMessage> ReserveTarget = new Dictionary<NetworkInstanceId, ReserveTargetMessage>();
+
+
+
+        private static ArtifactIndex eclipseArtifact = ArtifactIndex.None;
+        private static ArtifactIndex diluvianArtifact = ArtifactIndex.None;
 
 
 
@@ -166,6 +171,24 @@ namespace TPDespair.CorpseBloomReborn
 
 
 
+        private static void FindArtifactIndexes()
+        {
+            ArtifactIndex index = ArtifactCatalog.FindArtifactIndex("ARTIFACT_ZETECLIFACT");
+            if (index != ArtifactIndex.None)
+            {
+                eclipseArtifact = index;
+                Debug.LogWarning("EclipseArtifactIndex : " + eclipseArtifact);
+            }
+            index = ArtifactCatalog.FindArtifactIndex("ARTIFACT_DILUVIFACT");
+            if (index != ArtifactIndex.None)
+            {
+                diluvianArtifact = index;
+                Debug.LogWarning("DiluvianArtifactIndex : " + diluvianArtifact);
+            }
+        }
+
+
+
         private int HealthComponentItemCount(HealthComponent healthComponent, ItemDef itemDef)
         {
             int count = 0;
@@ -182,7 +205,19 @@ namespace TPDespair.CorpseBloomReborn
         private float GetHealScaleFactor(HealthComponent healthComponent)
         {
             float factor = 1f + HealthComponentItemCount(healthComponent, RoR2Content.Items.IncreaseHealing);
-            if (healthComponent.body.teamComponent.teamIndex == TeamIndex.Player && Run.instance.selectedDifficulty >= DifficultyIndex.Eclipse5) factor *= 0.5f;
+
+            if (healthComponent.body && healthComponent.body.teamComponent.teamIndex == TeamIndex.Player)
+            {
+                if (Run.instance.selectedDifficulty >= DifficultyIndex.Eclipse5 || (eclipseArtifact != ArtifactIndex.None && RunArtifactManager.instance.IsArtifactEnabled(eclipseArtifact)))
+                {
+                    factor *= 0.5f;
+                }
+                if (diluvianArtifact != ArtifactIndex.None && RunArtifactManager.instance.IsArtifactEnabled(diluvianArtifact))
+                {
+                    factor *= 0.75f;
+                }
+            }
+
             return factor;
         }
 
@@ -740,6 +775,8 @@ namespace TPDespair.CorpseBloomReborn
         public void Awake()
         {
             ConfigSetup();
+
+            ArtifactCatalog.availability.CallWhenAvailable(FindArtifactIndexes);
 
             HealthUIAwakeHook();
             HealthUIUpdateHook();
