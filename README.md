@@ -28,6 +28,8 @@ None that I know of, report any you find!
 
 ## Changelog:
 
+v1.1.1 - Fixed Eclipse artifact reducing healing twice.
+
 v1.1.0 - Anniversary Update. Increased reserve amount. Healing now goes into reserve first by default.
 
 v1.0.0 - Initial Release.
