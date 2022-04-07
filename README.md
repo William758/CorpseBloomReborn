@@ -1,32 +1,34 @@
 # CorpseBloomReborn
 
-![demo](https://i.imgur.com/XrgGoKp.png)
+![demo](https://i.imgur.com/br3CsIG.png)
 
-CorpseBloom now gives a percentage of maximum health as Reserve.
+Corpsebloom now grants a percentage of maximum health as reserve.
 
-Healing is stored into Reserve and heals you over time.
+Healing is stored into reserve and heals you over time.
 
-Any extra healing past full reserve goes directly into Health.
+Prevent healing multipliers from affecting healing twice while using Corpsebloom.
 
-Reserve has a minimum and maximum usage rate, so keep healing to keep it filled up.
+Rejuvenation Rack double healing can be re-enabled with config.
 
-Current Reserve is shown as a purple bar on the health bar on the HUD.
+Configure when healing goes into reserve. (HealBeforeReserve) and (HealWhenReserveFull)
+
+Reserve is used at a slower rate when fully healed.
+
+Reserve usage rate being divided by stack count can be re-enabled with config.
+
+Current reserve is shown as a purple bar on the HealthBar of the HUD and AllyCards.
 
 https://streamable.com/qh79ba
 
-Config allows changing behavior and values.
-
 ## Installation:
 
-Requires Bepinex, R2API, MiniRPCLib.
+Requires Bepinex and HookGenPatcher.
 
 Use r2modman or place inside of Risk of Rain 2/Bepinex/Plugins/
 
-## Issues:
-
-None that I know of, report any you find!
-
 ## Changelog:
+
+v1.2.0 - Updated for latest game version. Now only uses HookGenPatcher. ReserveBars for allies.
 
 v1.1.1 - Fixed Eclipse artifact reducing healing twice.
 
