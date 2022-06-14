@@ -4,12 +4,14 @@ namespace TPDespair.CorpseBloomReborn
 {
 	public static class Configuration
 	{
+		public static ConfigEntry<bool> HideReserveBuff { get; set; }
 		public static ConfigEntry<bool> HealBeforeReserve { get; set; }
 		public static ConfigEntry<bool> HealWhenReserveFull { get; set; }
 		public static ConfigEntry<float> BaseAbsorbMult { get; set; }
 		public static ConfigEntry<float> AddedAbsorbMult { get; set; }
 		public static ConfigEntry<float> BaseExportMult { get; set; }
 		public static ConfigEntry<float> AddedExportMult { get; set; }
+		public static ConfigEntry<int> AegisInteraction { get; set; }
 		public static ConfigEntry<bool> RestoreRejuvBehavior { get; set; }
 		public static ConfigEntry<float> BaseHealthReserve { get; set; }
 		public static ConfigEntry<float> AddedHealthReserve { get; set; }
@@ -23,6 +25,10 @@ namespace TPDespair.CorpseBloomReborn
 
 		internal static void Init(ConfigFile Config)
 		{
+			HideReserveBuff = Config.Bind(
+				"General", "HideReserveBuff", true,
+				"Set CBReserve buff as hidden, preventing it from being drawn on your active buffs bar."
+			);
 			HealBeforeReserve = Config.Bind(
 				"General", "HealBeforeReserve", false,
 				"If incoming healing should apply to health before going into reserve."
@@ -33,7 +39,7 @@ namespace TPDespair.CorpseBloomReborn
 			);
 			BaseAbsorbMult = Config.Bind(
 				"General", "BaseAbsorbMult", 2f,
-				"Reserve absorbtion. Base effectiveness of healing going into reserve."
+				"Reserve absorption. Base effectiveness of healing going into reserve."
 			);
 			AddedAbsorbMult = Config.Bind(
 				"General", "AddedAbsorbMult", 1f,
@@ -46,6 +52,10 @@ namespace TPDespair.CorpseBloomReborn
 			AddedExportMult = Config.Bind(
 				"General", "AddedExportMult", 0f,
 				"Increased healing effect per stack."
+			);
+			AegisInteraction = Config.Bind(
+				"General", "AegisInteraction", 1,
+				"How does Aegis affect usage rate. 0 = No Effect, 1 = MaxUsage at MinBarrier / MinUsage at MaxBarrier, 2 = Always MaxUsage. Chooses highest between this and amount going to health (amount going to health is highest between MinUsage and HealMissingHealth capped at MaxUsage)."
 			);
 			RestoreRejuvBehavior = Config.Bind(
 				"General", "RestoreRejuvBehavior", false,

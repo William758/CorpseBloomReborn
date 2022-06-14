@@ -38,6 +38,7 @@ namespace TPDespair.CorpseBloomReborn
 			public float exportMult = 1f;
 
 			public bool healingDisabled = false;
+			public int aegisState = 0;
 		}
 
 
@@ -85,6 +86,8 @@ namespace TPDespair.CorpseBloomReborn
 				float absorbMult = 1f;
 				float exportMult = 1f;
 
+				int aegisState = 0;
+
 				if (!reserveInfo.healthComponent)
 				{
 					HealthComponent healthComponent = body.healthComponent;
@@ -124,7 +127,16 @@ namespace TPDespair.CorpseBloomReborn
 						count = inventory.GetItemCount(RoR2Content.Items.IncreaseHealing);
 						if (count > 0)
 						{
-							exportMult *= 1f + count;
+							absorbMult *= 1f + count;
+						}
+					}
+
+					if (Configuration.AegisInteraction.Value > 0)
+					{
+						count = inventory.GetItemCount(RoR2Content.Items.BarrierOnOverHeal);
+						if (count > 0)
+						{
+							aegisState = Configuration.AegisInteraction.Value;
 						}
 					}
 				}
@@ -139,6 +151,7 @@ namespace TPDespair.CorpseBloomReborn
 				reserveInfo.exportMult = exportMult;
 
 				reserveInfo.healingDisabled = body.HasBuff(RoR2Content.Buffs.HealingDisabled);
+				reserveInfo.aegisState = aegisState;
 			}
 		}
 
@@ -286,13 +299,9 @@ namespace TPDespair.CorpseBloomReborn
 						{
 							AddReserve(reserveInfo, amount);
 						}
+					}
 
-						return 0f;
-					}
-					else
-					{
-						return 0f;
-					}
+					return 0f;
 				}
 			}
 
@@ -376,7 +385,7 @@ namespace TPDespair.CorpseBloomReborn
 				}
 
 				// Healing
-				if (ResetTimer(reserveInfo) || (reserveInfo.minRate == 0f && healthComponent.health >= healthComponent.fullHealth))
+				if (ResetTimer(reserveInfo))
 				{
 					reserveInfo.healTimer = ReserveUpdateInterval;
 				}
@@ -403,9 +412,19 @@ namespace TPDespair.CorpseBloomReborn
 
 		private static bool ResetTimer(ReserveInfo reserveInfo)
 		{
-			if (reserveInfo.reserve == 0f) return true;
+			// prevent reserve usage
+			if (reserveInfo.reserve <= 0f) return true;
 			if (reserveInfo.healingDisabled) return true;
 
+			// force reserve usage
+			if (reserveInfo.minRate > 0f) return false;
+			if (reserveInfo.aegisState > 0) return false;
+
+			// settings prevent reserve usage when health is full
+			HealthComponent healthComponent = reserveInfo.healthComponent;
+			if (healthComponent.health >= healthComponent.fullHealth) return true;
+
+			// proceed with reserve usage
 			return false;
 		}
 
@@ -413,11 +432,31 @@ namespace TPDespair.CorpseBloomReborn
 		{
 			HealthComponent healthComponent = reserveInfo.healthComponent;
 
-			// highest between - min heal amount - heal missing health
-			float healMissingHealth = (healthComponent.fullHealth - healthComponent.health) / reserveInfo.exportMult;
-			float toHealth = Mathf.Max(healthComponent.fullHealth * reserveInfo.minRate * ReserveUpdateInterval, healMissingHealth);
-			// lowest between : reserve - max heal amount - toHealth
-			return Mathf.Min(reserveInfo.reserve, healthComponent.fullHealth * reserveInfo.maxRate * ReserveUpdateInterval, toHealth);
+			float fullHealth = healthComponent.fullHealth;
+			float maxHeal = fullHealth * reserveInfo.maxRate * ReserveUpdateInterval;
+
+			if (reserveInfo.aegisState >= 2)
+			{
+				// lowest between : reserve - maxHeal
+				return Mathf.Min(reserveInfo.reserve, maxHeal);
+			}
+
+			float minHeal = fullHealth * reserveInfo.minRate * ReserveUpdateInterval;
+
+			// highest between - minHeal - healMissing
+			// healMissing does not account for external healing multipliers
+			float healMissing = (fullHealth - healthComponent.health) / reserveInfo.exportMult;
+			float toHealth = Mathf.Max(minHeal, healMissing);
+
+			// highest between toHealth and barrierDemand
+			if (reserveInfo.aegisState == 1)
+			{
+				float barrierDemand = Mathf.Lerp(maxHeal, minHeal, healthComponent.barrier / healthComponent.fullBarrier);
+				toHealth = Mathf.Max(toHealth, barrierDemand);
+			}
+
+			// lowest between : reserve - maxHeal - toHealth
+			return Mathf.Min(reserveInfo.reserve, maxHeal, toHealth);
 		}
 	}
 }

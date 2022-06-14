@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using BepInEx;
 using RoR2;
 using RoR2.ContentManagement;
@@ -19,7 +19,7 @@ namespace TPDespair.CorpseBloomReborn
 
 	public class CorpseBloomRebornPlugin : BaseUnityPlugin
 	{
-		public const string ModVer = "1.2.0";
+		public const string ModVer = "1.2.2";
 		public const string ModName = "CorpseBloomReborn";
 		public const string ModGuid = "com.TPDespair.CorpseBloomReborn";
 
@@ -176,7 +176,7 @@ namespace TPDespair.CorpseBloomReborn
 			else if (Configuration.HealWhenReserveFull.Value) output += "Store healing to heal over time.";
 			else output += "All healing is applied over time.";
 
-			output += "\n";
+			//output += "\n";
 
 			output += "\nGain <style=cIsHealing>";
 			output += $"{Configuration.BaseHealthReserve.Value * 100f:0.##}%</style>";

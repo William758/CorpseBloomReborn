@@ -58,6 +58,11 @@ namespace TPDespair.CorpseBloomReborn
 				CBReserve.isDebuff = false;
 				CBReserve.iconSprite = LegacyResourcesAPI.Load<BuffDef>("BuffDefs/MedkitHeal").iconSprite;
 
+				if (Configuration.HideReserveBuff.Value)
+				{
+					CBReserve.isHidden = true;
+				}
+
 				buffDefs.Add(CBReserve);
 			}
 		}

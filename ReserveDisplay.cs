@@ -22,6 +22,13 @@ namespace TPDespair.CorpseBloomReborn
 
 
 
+		public void UpdateReserveDisplay()
+		{
+			UpdateDisplayValues();
+			UpdateContainer();
+			UpdateDisplay();
+		}
+
 		public void UpdateDisplayValues()
 		{
 			reserveFraction = 0f;
@@ -92,8 +99,6 @@ namespace TPDespair.CorpseBloomReborn
 			rebuild = true;
 		}
 
-
-
 		private void DestroyReserveBar()
 		{
 			reserveContainer.SetActive(false);
@@ -113,8 +118,7 @@ namespace TPDespair.CorpseBloomReborn
 			float height = Mathf.CeilToInt(rect.height / 3.125f);
 			float halfWidth = width / 2f;
 
-			reserveContainer = new GameObject();
-			reserveContainer.name = "ReserveRect";
+			reserveContainer = new GameObject("ReserveRect");
 			containerTransform = reserveContainer.AddComponent<RectTransform>();
 			containerTransform.position = new Vector3(0f, 0f);
 			containerTransform.anchoredPosition = new Vector2(halfWidth, 0f);
@@ -125,8 +129,7 @@ namespace TPDespair.CorpseBloomReborn
 			containerTransform.sizeDelta = new Vector2(width, height);
 			containerTransform.pivot = new Vector2(0f, 0f);
 
-			reserveBar = new GameObject();
-			reserveBar.name = "ReserveBar";
+			reserveBar = new GameObject("ReserveBar");
 			reserveBar.transform.SetParent(containerTransform.transform);
 			barTransform = reserveBar.AddComponent<RectTransform>();
 			barTransform.sizeDelta = new Vector2(width, height);
@@ -148,9 +151,7 @@ namespace TPDespair.CorpseBloomReborn
 				healthBar = hud.healthBar;
 			}
 
-			UpdateDisplayValues();
-			UpdateContainer();
-			UpdateDisplay();
+			UpdateReserveDisplay();
 		}
 	}
 
@@ -173,9 +174,7 @@ namespace TPDespair.CorpseBloomReborn
 				}
 			}
 
-			UpdateDisplayValues();
-			UpdateContainer();
-			UpdateDisplay();
+			UpdateReserveDisplay();
 		}
 	}
 }
