@@ -19,7 +19,7 @@ namespace TPDespair.CorpseBloomReborn
 
 	public class CorpseBloomRebornPlugin : BaseUnityPlugin
 	{
-		public const string ModVer = "1.2.2";
+		public const string ModVer = "1.3.0";
 		public const string ModName = "CorpseBloomReborn";
 		public const string ModGuid = "com.TPDespair.CorpseBloomReborn";
 
