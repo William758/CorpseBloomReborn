@@ -100,7 +100,7 @@ namespace TPDespair.CorpseBloomReborn
 				Inventory inventory = body.inventory;
 				if (inventory)
 				{
-					int count = inventory.GetItemCount(RoR2Content.Items.RepeatHeal);
+					int count = inventory.GetItemCountEffective(RoR2Content.Items.RepeatHeal);
 					if (count > 0)
 					{
 						reserveMult = Mathf.Max(0.1f, Configuration.BaseHealthReserve.Value + Configuration.AddedHealthReserve.Value * (count - 1));
@@ -124,7 +124,7 @@ namespace TPDespair.CorpseBloomReborn
 
 					if (Configuration.RestoreRejuvBehavior.Value)
 					{
-						count = inventory.GetItemCount(RoR2Content.Items.IncreaseHealing);
+						count = inventory.GetItemCountEffective(RoR2Content.Items.IncreaseHealing);
 						if (count > 0)
 						{
 							absorbMult *= 1f + count;
@@ -133,7 +133,7 @@ namespace TPDespair.CorpseBloomReborn
 
 					if (Configuration.AegisInteraction.Value > 0)
 					{
-						count = inventory.GetItemCount(RoR2Content.Items.BarrierOnOverHeal);
+						count = inventory.GetItemCountEffective(RoR2Content.Items.BarrierOnOverHeal);
 						if (count > 0)
 						{
 							aegisState = Configuration.AegisInteraction.Value;

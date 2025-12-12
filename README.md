@@ -40,6 +40,8 @@ Use r2modman or place inside of Risk of Rain 2/Bepinex/Plugins/
 
 ## Changelog:
 
+v1.4.0 - Updated for AC.
+
 v1.3.0 - Updated for SotS.
 
 v1.2.2 - ReserveBuff is now hidden. Aegis now effects reserve usage rate.
