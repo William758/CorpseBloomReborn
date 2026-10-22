@@ -19,13 +19,11 @@ namespace TPDespair.CorpseBloomReborn
 
 	public class CorpseBloomRebornPlugin : BaseUnityPlugin
 	{
-		public const string ModVer = "1.4.0";
+		public const string ModVer = "1.4.1";
 		public const string ModName = "CorpseBloomReborn";
 		public const string ModGuid = "com.TPDespair.CorpseBloomReborn";
 
 		public static Dictionary<string, string> LangTokens = new Dictionary<string, string>();
-
-		public static ArtifactIndex DiluvianArtifact = ArtifactIndex.None;
 
 
 
@@ -39,7 +37,6 @@ namespace TPDespair.CorpseBloomReborn
 			ContentManager.collectContentPackProviders += ContentManager_collectContentPackProviders;
 
 			ReserveManager.Init();
-			RoR2Application.onLoad += ApplicationOnLoad;
 
 			HudAwakeHook();
 			AllyCardAwakeHook();
@@ -71,36 +68,6 @@ namespace TPDespair.CorpseBloomReborn
 		private void ContentManager_collectContentPackProviders(ContentManager.AddContentPackProviderDelegate addContentPackProvider)
 		{
 			addContentPackProvider(new CorpseBloomRebornContent());
-		}
-
-
-
-		private static void ApplicationOnLoad()
-		{
-            Run.onRunStartGlobal += RunStartHealPriority;
-
-			ArtifactIndex index = ArtifactCatalog.FindArtifactIndex("ARTIFACT_DILUVIFACT");
-			if (index != ArtifactIndex.None)
-			{
-				DiluvianArtifact = index;
-				RunArtifactManager.onArtifactEnabledGlobal += ArtifactEnabledHealPriority;
-			}
-		}
-
-        private static void RunStartHealPriority(Run run)
-        {
-			ReserveManager.RequestPriorityHealHook();
-		}
-
-		private static void ArtifactEnabledHealPriority(RunArtifactManager manager, ArtifactDef artifactDef)
-		{
-			if (artifactDef)
-			{
-				if (artifactDef.artifactIndex == DiluvianArtifact)
-				{
-					ReserveManager.RequestPriorityHealHook();
-				}
-			}
 		}
 
 

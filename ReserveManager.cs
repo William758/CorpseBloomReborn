@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using RoR2;
+using MonoMod.RuntimeDetour;
 
 namespace TPDespair.CorpseBloomReborn
 {
@@ -15,10 +16,6 @@ namespace TPDespair.CorpseBloomReborn
 		private const float ReserveUpdateInterval = 0.25f;
 
 		internal static BuffDef IndicatorBuff;
-
-		private static bool Rehook = false;
-		private static float RehookTimer = 0f;
-		private static bool HealHooked = false;
 
 		public class ReserveInfo
 		{
@@ -206,13 +203,17 @@ namespace TPDespair.CorpseBloomReborn
 
 		internal static void Init()
 		{
+			HookConfig hookConfig = default(HookConfig);
+			hookConfig.Priority = 10000;
+
+			new Hook(typeof(HealthComponent).GetMethod("Heal"), new On.RoR2.HealthComponent.hook_Heal(PriorityHealHook), hookConfig);
+
 			RecalculateReserveHook();
 			DestroyReserveHook();
 		}
 
 		internal static void OnFixedUpdate()
 		{
-			PrioritizeHealHook();
 			DestroyReserveData();
 			if (NetworkServer.active)
 			{
@@ -258,39 +259,11 @@ namespace TPDespair.CorpseBloomReborn
 
 
 
-		internal static void RequestPriorityHealHook()
-		{
-			RehookTimer = 1f;
-			Rehook = true;
-		}
-
-		private static void PrioritizeHealHook()
-		{
-			if (Rehook)
-			{
-				RehookTimer -= Time.fixedDeltaTime;
-				if (RehookTimer <= 0f)
-				{
-					RehookTimer = 1f;
-					Rehook = false;
-
-					if (HealHooked)
-					{
-						On.RoR2.HealthComponent.Heal -= PriorityHealHook;
-						HealHooked = false;
-					}
-
-					On.RoR2.HealthComponent.Heal += PriorityHealHook;
-					HealHooked = true;
-				}
-			}
-		}
-
 		private static float PriorityHealHook(On.RoR2.HealthComponent.orig_Heal orig, HealthComponent self, float amount, ProcChainMask procChainMask, bool nonRegen)
 		{
 			if (NetworkServer.active)
 			{
-				if (nonRegen && self.repeatHealComponent && !procChainMask.HasProc(ProcType.RepeatHeal))
+				if (nonRegen && self.repeatHealComponent && !procChainMask.HasProc(ProcType.RepeatHeal) && !procChainMask.HasProc(ProcType.BypassConvertHealing))
 				{
 					if (self.alive && amount > 0f && !self.body.HasBuff(RoR2Content.Buffs.HealingDisabled))
 					{

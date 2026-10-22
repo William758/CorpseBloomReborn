@@ -40,6 +40,8 @@ Use r2modman or place inside of Risk of Rain 2/Bepinex/Plugins/
 
 ## Changelog:
 
+v1.4.1 - Updated for HC.
+
 v1.4.0 - Updated for AC.
 
 v1.3.0 - Updated for SotS.
